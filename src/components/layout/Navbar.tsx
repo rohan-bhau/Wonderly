@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, X, Compass, ChevronDown, LogOut, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Menu, X, ChevronDown, LogOut, User, PlusCircle, List } from "lucide-react";
 import Button from "@/components/ui/Button";
+import { useAuth } from "./AuthContext";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -13,10 +15,17 @@ const navLinks = [
 ];
 
 export default function Navbar() {
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const { user, loading, logout } = useAuth();
 
-  const isLoggedIn = false;
+  const handleLogout = async () => {
+    await logout();
+    setProfileOpen(false);
+    router.push("/");
+    router.refresh();
+  };
 
   return (
     <header className="sticky top-0 z-50 h-16 bg-white/90 backdrop-blur-md border-b border-border/30">
@@ -37,22 +46,56 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
+          {user && (
+            <>
+              <Link
+                href="/items/add"
+                className="text-sm text-body hover:text-primary transition-colors"
+              >
+                Add Tour
+              </Link>
+              <Link
+                href="/items/manage"
+                className="text-sm text-body hover:text-primary transition-colors"
+              >
+                My Tours
+              </Link>
+            </>
+          )}
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
-          {isLoggedIn ? (
+          {loading ? null : user ? (
             <div className="relative">
               <button
                 onClick={() => setProfileOpen(!profileOpen)}
                 className="flex items-center gap-2 text-sm text-body hover:text-primary transition-colors"
               >
                 <User className="w-5 h-5" />
+                <span className="font-medium">{user.name}</span>
                 <ChevronDown className="w-4 h-4" />
               </button>
               {profileOpen && (
                 <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-border/30 py-2">
+                  <Link
+                    href="/items/add"
+                    onClick={() => setProfileOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-body hover:bg-filter-bg transition-colors"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    Add Tour
+                  </Link>
+                  <Link
+                    href="/items/manage"
+                    onClick={() => setProfileOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-body hover:bg-filter-bg transition-colors"
+                  >
+                    <List className="w-4 h-4" />
+                    My Tours
+                  </Link>
+                  <hr className="my-1 border-border/30" />
                   <button
-                    onClick={() => {}}
+                    onClick={handleLogout}
                     className="w-full flex items-center gap-2 px-4 py-2 text-sm text-body hover:bg-filter-bg transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
@@ -95,17 +138,52 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
+          {user && (
+            <>
+              <Link
+                href="/items/add"
+                onClick={() => setMobileOpen(false)}
+                className="block text-sm text-body hover:text-primary transition-colors"
+              >
+                Add Tour
+              </Link>
+              <Link
+                href="/items/manage"
+                onClick={() => setMobileOpen(false)}
+                className="block text-sm text-body hover:text-primary transition-colors"
+              >
+                My Tours
+              </Link>
+            </>
+          )}
           <div className="pt-2 flex flex-col gap-2">
-            <Link href="/login">
-              <Button variant="ghost" size="sm" className="w-full">
-                Login
+            {user ? (
+              <Button
+                variant="secondary"
+                size="sm"
+                className="w-full"
+                onClick={() => {
+                  handleLogout();
+                  setMobileOpen(false);
+                }}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
               </Button>
-            </Link>
-            <Link href="/register">
-              <Button size="sm" className="w-full">
-                Register
-              </Button>
-            </Link>
+            ) : (
+              <>
+                <Link href="/login" onClick={() => setMobileOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full">
+                    Login
+                  </Button>
+                </Link>
+                <Link href="/register" onClick={() => setMobileOpen(false)}>
+                  <Button size="sm" className="w-full">
+                    Register
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

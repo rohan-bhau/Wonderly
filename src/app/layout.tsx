@@ -3,6 +3,7 @@ import { Be_Vietnam_Pro, Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { AuthProvider } from "@/components/layout/AuthContext";
 
 const beVietnamPro = Be_Vietnam_Pro({
   variable: "--font-heading",
@@ -32,9 +33,11 @@ export default function RootLayout({
       className={`${beVietnamPro.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <AuthProvider>
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );
