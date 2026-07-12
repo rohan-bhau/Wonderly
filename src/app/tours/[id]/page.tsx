@@ -23,7 +23,6 @@ import Rating from "@/components/ui/Rating";
 import PriceDisplay from "@/components/ui/PriceDisplay";
 import IconText from "@/components/ui/IconText";
 import Button from "@/components/ui/Button";
-import { CardSkeleton } from "@/components/ui/Skeleton";
 import { useAuth } from "@/components/layout/AuthContext";
 import type { ITour, IReview } from "@/types";
 
@@ -121,20 +120,33 @@ export default function TourDetailsPage() {
 
   const tourId = params.id as string;
 
-  const fetchTour = async () => {
-    try {
-      const res = await fetch(`/api/tours/${tourId}`);
-      const data = await res.json();
-      if (data.success) {
-        setTour(data.data.tour);
-        setRelatedTours(data.data.relatedTours || []);
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        const [tourRes, reviewsRes] = await Promise.all([
+          fetch(`/api/tours/${tourId}`),
+          fetch(`/api/tours/${tourId}/reviews`),
+        ]);
+        const tourData = await tourRes.json();
+        const reviewsData = await reviewsRes.json();
+        if (tourData.success) {
+          setTour(tourData.data.tour);
+          setRelatedTours(tourData.data.relatedTours || []);
+        }
+        if (reviewsData.success) {
+          setReviews(reviewsData.data.reviews);
+        }
+      } catch {
+        // handled by null/empty state
+      } finally {
+        setLoading(false);
       }
-    } catch {
-      // handled by null state
-    }
-  };
+    };
+    load();
+  }, [tourId]);
 
-  const fetchReviews = async () => {
+  const refreshReviews = async () => {
     try {
       const res = await fetch(`/api/tours/${tourId}/reviews`);
       const data = await res.json();
@@ -142,14 +154,9 @@ export default function TourDetailsPage() {
         setReviews(data.data.reviews);
       }
     } catch {
-      // handled by empty state
+      //
     }
   };
-
-  useEffect(() => {
-    setLoading(true);
-    Promise.all([fetchTour(), fetchReviews()]).finally(() => setLoading(false));
-  }, [tourId]);
 
   if (loading) {
     return (
@@ -179,12 +186,12 @@ export default function TourDetailsPage() {
         <div className="text-center">
           <h1 className="text-2xl font-heading font-bold text-dark mb-2">Tour not found</h1>
           <p className="text-body mb-6">The tour you&apos;re looking for doesn&apos;t exist or has been removed.</p>
-          <a
+          <Link
             href="/tours"
             className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-medium hover:bg-primary-light transition-colors"
           >
             Browse Tours
-          </a>
+          </Link>
         </div>
       </div>
     );
@@ -352,7 +359,7 @@ export default function TourDetailsPage() {
 
               {user && (
                 <div className="mt-6 bg-white rounded-2xl shadow-sm p-6">
-                  <ReviewForm tourId={tourId} onReviewAdded={fetchReviews} />
+                  <ReviewForm tourId={tourId} onReviewAdded={refreshReviews} />
                 </div>
               )}
             </section>
