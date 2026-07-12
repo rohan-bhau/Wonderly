@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Menu, X, ChevronDown, LogOut, User, PlusCircle, List } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { useAuth } from "./AuthContext";
@@ -16,9 +16,22 @@ const navLinks = [
 
 export default function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const { user, loading, logout } = useAuth();
+
+  const isActive = (href: string) => {
+    if (href === "/") return pathname === "/";
+    return pathname.startsWith(href);
+  };
+
+  const linkClass = (href: string) =>
+    `text-sm transition-colors ${
+      isActive(href)
+        ? "text-primary font-semibold"
+        : "text-body hover:text-primary"
+    }`;
 
   const handleLogout = async () => {
     await logout();
@@ -41,7 +54,7 @@ export default function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm text-body hover:text-primary transition-colors"
+              className={linkClass(link.href)}
             >
               {link.label}
             </Link>
@@ -50,13 +63,13 @@ export default function Navbar() {
             <>
               <Link
                 href="/items/add"
-                className="text-sm text-body hover:text-primary transition-colors"
+                className={linkClass("/items/add")}
               >
                 Add Tour
               </Link>
               <Link
                 href="/items/manage"
-                className="text-sm text-body hover:text-primary transition-colors"
+                className={linkClass("/items/manage")}
               >
                 My Tours
               </Link>
@@ -80,7 +93,11 @@ export default function Navbar() {
                   <Link
                     href="/items/add"
                     onClick={() => setProfileOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-body hover:bg-filter-bg transition-colors"
+                    className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
+                      isActive("/items/add")
+                        ? "text-primary font-semibold bg-filter-bg"
+                        : "text-body hover:bg-filter-bg"
+                    }`}
                   >
                     <PlusCircle className="w-4 h-4" />
                     Add Tour
@@ -88,7 +105,11 @@ export default function Navbar() {
                   <Link
                     href="/items/manage"
                     onClick={() => setProfileOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-body hover:bg-filter-bg transition-colors"
+                    className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
+                      isActive("/items/manage")
+                        ? "text-primary font-semibold bg-filter-bg"
+                        : "text-body hover:bg-filter-bg"
+                    }`}
                   >
                     <List className="w-4 h-4" />
                     My Tours
@@ -133,7 +154,11 @@ export default function Navbar() {
               key={link.href}
               href={link.href}
               onClick={() => setMobileOpen(false)}
-              className="block text-sm text-body hover:text-primary transition-colors"
+              className={`block text-sm transition-colors ${
+                isActive(link.href)
+                  ? "text-primary font-semibold"
+                  : "text-body hover:text-primary"
+              }`}
             >
               {link.label}
             </Link>
@@ -143,14 +168,22 @@ export default function Navbar() {
               <Link
                 href="/items/add"
                 onClick={() => setMobileOpen(false)}
-                className="block text-sm text-body hover:text-primary transition-colors"
+                className={`block text-sm transition-colors ${
+                  isActive("/items/add")
+                    ? "text-primary font-semibold"
+                    : "text-body hover:text-primary"
+                }`}
               >
                 Add Tour
               </Link>
               <Link
                 href="/items/manage"
                 onClick={() => setMobileOpen(false)}
-                className="block text-sm text-body hover:text-primary transition-colors"
+                className={`block text-sm transition-colors ${
+                  isActive("/items/manage")
+                    ? "text-primary font-semibold"
+                    : "text-body hover:text-primary"
+                }`}
               >
                 My Tours
               </Link>
