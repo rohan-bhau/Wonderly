@@ -92,6 +92,13 @@ export async function POST(request: Request) {
       );
     }
 
+    if (user.role !== "admin") {
+      return NextResponse.json(
+        { success: false, message: "Only admins can create tours" },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const parsed = tourSchema.safeParse(body);
     if (!parsed.success) {

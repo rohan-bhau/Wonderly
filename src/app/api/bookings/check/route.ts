@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
-import Tour from "@/models/Tour";
+import Booking from "@/models/Booking";
 import { getCurrentUser } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -13,21 +13,27 @@ export async function GET() {
       );
     }
 
-    if (user.role !== "admin") {
+    const { searchParams } = new URL(request.url);
+    const tourId = searchParams.get("tourId");
+
+    if (!tourId) {
       return NextResponse.json(
-        { success: false, message: "Only admins can manage tours" },
-        { status: 403 }
+        { success: false, message: "Missing tourId" },
+        { status: 400 }
       );
     }
 
     await dbConnect();
 
-    const tours = await Tour.find({}).sort({ createdAt: -1 }).lean();
+    const booking = await Booking.findOne({
+      tourId,
+      userId: user._id,
+      status: "confirmed",
+    });
 
     return NextResponse.json({
       success: true,
-      message: "Tours fetched successfully",
-      data: { tours },
+      data: { booked: !!booking, bookingId: booking?._id || null },
     });
   } catch {
     return NextResponse.json(

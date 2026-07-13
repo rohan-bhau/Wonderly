@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import {
   Clock,
   MapPin,
@@ -16,6 +17,7 @@ import {
   ChevronUp,
   ArrowRight,
   Heart,
+  Loader2,
 } from "lucide-react";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
@@ -118,6 +120,15 @@ export default function TourDetailsPage() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [expandedDay, setExpandedDay] = useState<number | null>(1);
 
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const [bookingData, setBookingData] = useState({
+    phone: "",
+    guests: 1,
+    specialRequests: "",
+  });
+  const [bookingSubmitting, setBookingSubmitting] = useState(false);
+  const [booked, setBooked] = useState(false);
+
   const tourId = params.id as string;
 
   useEffect(() => {
@@ -145,6 +156,20 @@ export default function TourDetailsPage() {
     };
     load();
   }, [tourId]);
+
+  useEffect(() => {
+    if (!user) return;
+    const check = async () => {
+      try {
+        const res = await fetch(`/api/bookings/check?tourId=${tourId}`);
+        const data = await res.json();
+        if (data.success) setBooked(data.data.booked);
+      } catch {
+        //
+      }
+    };
+    check();
+  }, [user, tourId]);
 
   const refreshReviews = async () => {
     try {
@@ -357,10 +382,15 @@ export default function TourDetailsPage() {
                 <p className="text-body text-sm">No reviews yet. Be the first to review!</p>
               )}
 
-              {user && (
+              {user && user._id !== tour.createdBy && (
                 <div className="mt-6 bg-white rounded-2xl shadow-sm p-6">
                   <ReviewForm tourId={tourId} onReviewAdded={refreshReviews} />
                 </div>
+              )}
+              {user && user._id === tour.createdBy && (
+                <p className="mt-4 text-sm text-body/60 text-center">
+                  You cannot review your own tour.
+                </p>
               )}
             </section>
           </div>
@@ -399,11 +429,28 @@ export default function TourDetailsPage() {
 
                 <hr className="my-4 border-border/50" />
 
-                <Link href={`/tours/${tour._id}`}>
-                  <Button className="w-full" size="lg">
-                    Book Now
-                  </Button>
-                </Link>
+                <Button
+                  className="w-full"
+                  size="lg"
+                  disabled={booked}
+                  onClick={() => {
+                    if (!user) {
+                      toast.error("Please login first to book a tour");
+                      return;
+                    }
+                    if (user.role === "admin") {
+                      toast.error("Admins cannot book tours");
+                      return;
+                    }
+                    if (user._id === tour.createdBy) {
+                      toast.error("You cannot book your own tour");
+                      return;
+                    }
+                    setBookingOpen(true);
+                  }}
+                >
+                  {booked ? "Already Booked" : "Book Now"}
+                </Button>
               </Card>
 
               <Card className="p-6">
@@ -442,6 +489,128 @@ export default function TourDetailsPage() {
             </div>
           </aside>
         </div>
+
+        {bookingOpen && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+            <div className="bg-white rounded-2xl shadow-lg p-6 max-w-md w-full">
+              <h3 className="text-lg font-semibold text-dark font-heading mb-2">
+                Book This Tour
+              </h3>
+              <p className="text-sm text-body mb-6">
+                Fill in your details to confirm the booking.
+              </p>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setBookingSubmitting(true);
+                  try {
+                    const res = await fetch("/api/bookings", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        tourId: tour._id,
+                        ...bookingData,
+                      }),
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                      toast.success("Booking confirmed successfully!");
+                      setBooked(true);
+                      setBookingOpen(false);
+                      setBookingData({
+                        phone: "",
+                        guests: 1,
+                        specialRequests: "",
+                      });
+                    } else {
+                      toast.error(data.message || "Booking failed");
+                    }
+                  } catch {
+                    toast.error("Something went wrong");
+                  } finally {
+                    setBookingSubmitting(false);
+                  }
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <label className="block text-sm font-medium text-body mb-1">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={bookingData.phone}
+                    onChange={(e) =>
+                      setBookingData({ ...bookingData, phone: e.target.value })
+                    }
+                    placeholder="Enter your phone number"
+                    className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm text-dark placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-body mb-1">
+                    Number of Guests
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min={1}
+                    max={tour.groupSize}
+                    value={bookingData.guests}
+                    onChange={(e) =>
+                      setBookingData({
+                        ...bookingData,
+                        guests: parseInt(e.target.value) || 1,
+                      })
+                    }
+                    className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm text-dark placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                  <p className="text-xs text-body/60 mt-1">
+                    Max {tour.groupSize} guests
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-body mb-1">
+                    Special Requests (optional)
+                  </label>
+                  <textarea
+                    value={bookingData.specialRequests}
+                    onChange={(e) =>
+                      setBookingData({
+                        ...bookingData,
+                        specialRequests: e.target.value,
+                      })
+                    }
+                    rows={3}
+                    placeholder="Any special requirements..."
+                    className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm text-dark placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                  />
+                </div>
+                <div className="flex items-center gap-3 justify-end pt-2">
+                  <Button
+                    variant="secondary"
+                    type="button"
+                    onClick={() => setBookingOpen(false)}
+                    disabled={bookingSubmitting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={bookingSubmitting}>
+                    {bookingSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Booking...
+                      </>
+                    ) : (
+                      "Confirm Booking"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {relatedTours.length > 0 && (
           <section className="mt-16">

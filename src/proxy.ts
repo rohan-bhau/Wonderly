@@ -5,7 +5,7 @@ import { verifyToken } from "@/lib/auth";
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith("/items/add") || pathname.startsWith("/items/manage")) {
+  if (pathname.startsWith("/items/add") || pathname.startsWith("/items/manage") || pathname.startsWith("/items/bookings")) {
     const token = request.cookies.get("token")?.value;
     if (!token || !verifyToken(token)) {
       const loginUrl = new URL("/login", request.url);

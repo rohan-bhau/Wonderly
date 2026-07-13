@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { Menu, X, ChevronDown, LogOut, User, PlusCircle, List } from "lucide-react";
+import { Menu, X, ChevronDown, LogOut, User, PlusCircle, List, Calendar } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { useAuth } from "./AuthContext";
 
@@ -59,7 +59,7 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
-          {user && (
+          {user?.role === "admin" && (
             <>
               <Link
                 href="/items/add"
@@ -74,6 +74,14 @@ export default function Navbar() {
                 My Tours
               </Link>
             </>
+          )}
+          {user?.role !== "admin" && (
+            <Link
+              href="/items/bookings"
+              className={linkClass("/items/bookings")}
+            >
+              My Booked Tours
+            </Link>
           )}
         </nav>
 
@@ -90,30 +98,48 @@ export default function Navbar() {
               </button>
               {profileOpen && (
                 <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-border/30 py-2">
-                  <Link
-                    href="/items/add"
-                    onClick={() => setProfileOpen(false)}
-                    className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
-                      isActive("/items/add")
-                        ? "text-primary font-semibold bg-filter-bg"
-                        : "text-body hover:bg-filter-bg"
-                    }`}
-                  >
-                    <PlusCircle className="w-4 h-4" />
-                    Add Tour
-                  </Link>
-                  <Link
-                    href="/items/manage"
-                    onClick={() => setProfileOpen(false)}
-                    className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
-                      isActive("/items/manage")
-                        ? "text-primary font-semibold bg-filter-bg"
-                        : "text-body hover:bg-filter-bg"
-                    }`}
-                  >
-                    <List className="w-4 h-4" />
-                    My Tours
-                  </Link>
+                  {user?.role === "admin" && (
+                    <>
+                      <Link
+                        href="/items/add"
+                        onClick={() => setProfileOpen(false)}
+                        className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
+                          isActive("/items/add")
+                            ? "text-primary font-semibold bg-filter-bg"
+                            : "text-body hover:bg-filter-bg"
+                        }`}
+                      >
+                        <PlusCircle className="w-4 h-4" />
+                        Add Tour
+                      </Link>
+                      <Link
+                        href="/items/manage"
+                        onClick={() => setProfileOpen(false)}
+                        className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
+                          isActive("/items/manage")
+                            ? "text-primary font-semibold bg-filter-bg"
+                            : "text-body hover:bg-filter-bg"
+                        }`}
+                      >
+                        <List className="w-4 h-4" />
+                        My Tours
+                      </Link>
+                    </>
+                  )}
+                  {user?.role !== "admin" && (
+                    <Link
+                      href="/items/bookings"
+                      onClick={() => setProfileOpen(false)}
+                      className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
+                        isActive("/items/bookings")
+                          ? "text-primary font-semibold bg-filter-bg"
+                          : "text-body hover:bg-filter-bg"
+                      }`}
+                    >
+                      <Calendar className="w-4 h-4" />
+                      My Booked Tours
+                    </Link>
+                  )}
                   <hr className="my-1 border-border/30" />
                   <button
                     onClick={handleLogout}
@@ -163,7 +189,7 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
-          {user && (
+          {user?.role === "admin" && (
             <>
               <Link
                 href="/items/add"
@@ -188,6 +214,19 @@ export default function Navbar() {
                 My Tours
               </Link>
             </>
+          )}
+          {user?.role !== "admin" && (
+            <Link
+              href="/items/bookings"
+              onClick={() => setMobileOpen(false)}
+              className={`block text-sm transition-colors ${
+                isActive("/items/bookings")
+                  ? "text-primary font-semibold"
+                  : "text-body hover:text-primary"
+              }`}
+            >
+              My Booked Tours
+            </Link>
           )}
           <div className="pt-2 flex flex-col gap-2">
             {user ? (

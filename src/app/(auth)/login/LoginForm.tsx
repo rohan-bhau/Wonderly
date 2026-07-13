@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import toast from "react-hot-toast";
 import { loginSchema, LoginInput } from "@/lib/validation/auth";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -16,6 +17,12 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const { refreshUser } = useAuth();
   const redirect = searchParams.get("redirect") || "/";
+
+  useEffect(() => {
+    if (searchParams.get("registered") === "true") {
+      toast.success("Account created successfully! Please login.");
+    }
+  }, [searchParams]);
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -42,6 +49,7 @@ export default function LoginForm() {
         return;
       }
       await refreshUser();
+      toast.success("Logged in successfully!");
       router.push(redirect);
     } catch {
       setServerError("Something went wrong");

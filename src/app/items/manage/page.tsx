@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import { Plus, Trash2, ExternalLink, Loader2 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
@@ -9,9 +11,27 @@ import { useAuth } from "@/components/layout/AuthContext";
 import type { ITour } from "@/types";
 
 export default function ManageToursPage() {
-  const { user } = useAuth();
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [tours, setTours] = useState<ITour[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!authLoading && user && user.role !== "admin") {
+      toast.error("You don't have permission to access this page");
+      router.push("/");
+    }
+  }, [user, authLoading, router]);
+
+  if (authLoading) {
+    return (
+      <div className="bg-surface min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user || user.role !== "admin") return null;
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -41,6 +61,7 @@ export default function ManageToursPage() {
       const data = await res.json();
       if (data.success) {
         setTours((prev) => prev.filter((t) => t._id !== deleteId));
+        toast.success("Tour deleted successfully");
       }
     } catch {
       //

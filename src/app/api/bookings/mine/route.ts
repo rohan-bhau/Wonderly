@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
-import Tour from "@/models/Tour";
+import Booking from "@/models/Booking";
 import { getCurrentUser } from "@/lib/auth";
 
 export async function GET() {
@@ -13,21 +13,17 @@ export async function GET() {
       );
     }
 
-    if (user.role !== "admin") {
-      return NextResponse.json(
-        { success: false, message: "Only admins can manage tours" },
-        { status: 403 }
-      );
-    }
-
     await dbConnect();
 
-    const tours = await Tour.find({}).sort({ createdAt: -1 }).lean();
+    const bookings = await Booking.find({ userId: user._id })
+      .populate("tourId")
+      .sort({ createdAt: -1 })
+      .lean();
 
     return NextResponse.json({
       success: true,
-      message: "Tours fetched successfully",
-      data: { tours },
+      message: "Bookings fetched successfully",
+      data: { bookings },
     });
   } catch {
     return NextResponse.json(

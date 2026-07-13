@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, useFieldArray } from "react-hook-form";
+import toast from "react-hot-toast";
 import { tourSchema } from "@/lib/validation/tour";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/components/layout/AuthContext";
 
 const categories = [
   "Adventure", "Beach", "Mountain", "Cultural", "Wildlife", "City",
@@ -34,8 +36,26 @@ interface FormValues {
 
 export default function AddTourPage() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && user && user.role !== "admin") {
+      toast.error("You don't have permission to access this page");
+      router.push("/");
+    }
+  }, [user, authLoading, router]);
+
+  if (authLoading) {
+    return (
+      <div className="bg-surface min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user || user.role !== "admin") return null;
 
   const {
     register,
@@ -107,7 +127,8 @@ export default function AddTourPage() {
         setServerError(json.message || "Failed to create tour");
         return;
       }
-      router.push(`/tours/${json.data.tour._id}`);
+      toast.success("Tour created successfully!");
+      router.push(`/tours/${json.data._id}`);
     } catch (e: unknown) {
       setServerError(e instanceof Error ? e.message : "Something went wrong");
     } finally {

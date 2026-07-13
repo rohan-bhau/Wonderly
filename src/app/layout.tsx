@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { AuthProvider } from "@/components/layout/AuthContext";
+import { Toaster } from "react-hot-toast";
 
 const beVietnamPro = Be_Vietnam_Pro({
   variable: "--font-heading",
@@ -37,6 +38,16 @@ export default function RootLayout({
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 3000,
+              style: {
+                borderRadius: "12px",
+                fontSize: "14px",
+              },
+            }}
+          />
         </AuthProvider>
       </body>
     </html>

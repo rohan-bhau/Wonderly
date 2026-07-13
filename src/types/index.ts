@@ -53,6 +53,19 @@ export interface IBlogPost {
   createdAt: Date;
 }
 
+export interface IBooking {
+  _id: string;
+  tourId: string | ITour;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  phone: string;
+  guests: number;
+  specialRequests?: string;
+  status: "confirmed" | "cancelled";
+  createdAt: Date;
+}
+
 export interface INewsletterSubscriber {
   email: string;
   subscribedAt: Date;
