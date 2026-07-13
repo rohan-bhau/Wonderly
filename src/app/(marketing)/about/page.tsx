@@ -80,10 +80,10 @@ export default function AboutPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="rounded-2xl overflow-hidden">
-                <img src="/placeholder.svg" alt="Travel experience" className="w-full h-48 object-cover" />
+                <img src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400&q=80" alt="Travel experience" className="w-full h-48 object-cover" />
               </div>
               <div className="rounded-2xl overflow-hidden mt-8">
-                <img src="/placeholder.svg" alt="Travel experience" className="w-full h-48 object-cover" />
+                <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400&q=80" alt="Travel experience" className="w-full h-48 object-cover" />
               </div>
             </div>
           </div>

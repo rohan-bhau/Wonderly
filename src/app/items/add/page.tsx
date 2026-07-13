@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, useFieldArray } from "react-hook-form";
 import toast from "react-hot-toast";
+import { z } from "zod";
 import { tourSchema } from "@/lib/validation/tour";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -112,11 +113,15 @@ export default function AddTourPage() {
     setServerError("");
     setLoading(true);
     try {
-      const parsed = tourSchema.parse({
+      const cleanData = {
         ...data,
         price: data.price ? Number(data.price) : 0,
         groupSize: data.groupSize ? Number(data.groupSize) : 0,
-      });
+        images: data.images.filter((url) => url.trim() !== ""),
+        inclusions: data.inclusions.filter((i) => i.trim() !== ""),
+        exclusions: (data.exclusions || []).filter((e) => e.trim() !== ""),
+      };
+      const parsed = tourSchema.parse(cleanData);
       const res = await fetch("/api/tours", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -124,13 +129,26 @@ export default function AddTourPage() {
       });
       const json = await res.json();
       if (!res.ok) {
-        setServerError(json.message || "Failed to create tour");
+        const fieldMsgs = json.data
+          ? Object.entries(json.data as Record<string, string[]>)
+              .map(([field, msgs]) => `${field}: ${msgs.join(", ")}`)
+              .join(" | ")
+          : json.message;
+        setServerError(fieldMsgs || "Failed to create tour");
         return;
       }
       toast.success("Tour created successfully!");
       router.push(`/tours/${json.data._id}`);
     } catch (e: unknown) {
-      setServerError(e instanceof Error ? e.message : "Something went wrong");
+      if (e instanceof z.ZodError) {
+        const msg = e.issues
+          .slice(0, 3)
+          .map((i) => `${i.path.join(".")}: ${i.message}`)
+          .join(" | ");
+        setServerError(msg || "Please fix the form errors and try again.");
+      } else {
+        setServerError(e instanceof Error ? e.message : "Something went wrong");
+      }
     } finally {
       setLoading(false);
     }

@@ -9,7 +9,7 @@ import toast from "react-hot-toast";
 import { loginSchema, LoginInput } from "@/lib/validation/auth";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { LogIn } from "lucide-react";
+import { LogIn, User, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/components/layout/AuthContext";
 
 export default function LoginForm() {
@@ -29,10 +29,16 @@ export default function LoginForm() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
   });
+
+  const fillDemo = (email: string, password: string) => {
+    setValue("email", email);
+    setValue("password", password);
+  };
 
   async function onSubmit(data: LoginInput) {
     setServerError("");
@@ -85,6 +91,32 @@ export default function LoginForm() {
           {serverError && (
             <p className="text-sm text-red-500 text-center">{serverError}</p>
           )}
+
+          <div className="pt-2">
+            <p className="text-xs text-body/60 text-center mb-2">Demo Login</p>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="flex-1"
+                onClick={() => fillDemo("demo.user@wanderly.app", "Demo@1234")}
+              >
+                <User className="w-3.5 h-3.5 mr-1.5" />
+                Demo User
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="flex-1"
+                onClick={() => fillDemo("demo.admin@wanderly.app", "Admin@1234")}
+              >
+                <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
+                Demo Admin
+              </Button>
+            </div>
+          </div>
 
           <Button type="submit" size="lg" className="w-full" disabled={loading}>
             <LogIn className="w-4 h-4 mr-2" />

@@ -75,7 +75,7 @@ export default function Navbar() {
               </Link>
             </>
           )}
-          {user?.role !== "admin" && (
+          {user && user.role !== "admin" && (
             <Link
               href="/items/bookings"
               className={linkClass("/items/bookings")}
@@ -126,7 +126,7 @@ export default function Navbar() {
                       </Link>
                     </>
                   )}
-                  {user?.role !== "admin" && (
+          {user && user.role !== "admin" && (
                     <Link
                       href="/items/bookings"
                       onClick={() => setProfileOpen(false)}
@@ -215,7 +215,7 @@ export default function Navbar() {
               </Link>
             </>
           )}
-          {user?.role !== "admin" && (
+          {user && user.role !== "admin" && (
             <Link
               href="/items/bookings"
               onClick={() => setMobileOpen(false)}

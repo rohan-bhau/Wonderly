@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { Plus, Trash2, ExternalLink, Loader2 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
+import Pagination from "@/components/ui/Pagination";
 import { useAuth } from "@/components/layout/AuthContext";
 import type { ITour } from "@/types";
 
@@ -15,6 +16,8 @@ export default function ManageToursPage() {
   const { user, loading: authLoading } = useAuth();
   const [tours, setTours] = useState<ITour[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     if (!authLoading && user && user.role !== "admin") {
@@ -39,10 +42,11 @@ export default function ManageToursPage() {
     const fetchTours = async () => {
       setLoading(true);
       try {
-        const res = await fetch("/api/tours/mine");
+        const res = await fetch(`/api/tours/mine?page=${page}&limit=10`);
         const data = await res.json();
         if (data.success) {
           setTours(data.data.tours);
+          setTotalPages(data.data.pagination.totalPages);
         }
       } catch {
         //
@@ -51,7 +55,7 @@ export default function ManageToursPage() {
       }
     };
     fetchTours();
-  }, []);
+  }, [page]);
 
   async function handleDelete() {
     if (!deleteId) return;
@@ -216,6 +220,14 @@ export default function ManageToursPage() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            <div className="mt-8">
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+              />
             </div>
           </>
         )}
