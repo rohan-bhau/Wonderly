@@ -2,7 +2,7 @@
 
 > A modern travel & tour booking platform built with **Next.js 16** and **React 19** — featuring user authentication, tour management, booking system, reviews, blog, newsletter, and more.
 
-![Homepage](/wanderly.png)
+![Homepage](https://wanderly-self.vercel.app/wanderly.png)
 
 🔗 **Live:** [wanderly-self.vercel.app](https://wanderly-self.vercel.app/)  
 📦 **Repo:** [github.com/rohan-bhau/Wonderly](https://github.com/rohan-bhau/Wonderly)
